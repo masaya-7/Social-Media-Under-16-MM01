@@ -188,7 +188,12 @@
    4. Edit COMMENT_SETS to replace the placeholder comments with
       comments relevant to your actual video, keeping the pos/neu/neg
       grouping intact (5 comments each is a reasonable default; you can
-      add or remove without breaking anything).
+      add or remove without breaking anything). Each comment's "likes"
+      field is a RATIO (fraction of that condition's video like count),
+      not a fixed number — this keeps comment engagement proportional
+      to each condition's actual popularity (e.g. a low-like video
+      won't show comments with more likes than the video itself has).
+      A ratio of 0.0005 means "0.05% of the video's like count."
 
    5. Deploy: drag this single .html file into Netlify/Vercel/Cloudflare
       Pages (or any static host). No build step, no npm install.
@@ -228,35 +233,35 @@
   //   high views + high likes, high views + low likes,
   //   low views + high likes,  low views + low likes
   const NUMBERS = {
-    view: { high: 847000, low: 1284 },
+    view: { high: 1842317, low: 11486 },
     like: {
-      high: { high: 38000, low: 6200 },  // like counts used when views = high
-      low:  { high: 320,   low: 84   }   // like counts used when views = low
+      high: { high: 128562, low: 8247 },  // like counts used when views = high
+      low:  { high: 1215,   low: 68   }   // like counts used when views = low
     }
   };
 
   // ---- 4. COMMENTS (5 per valence, reused across matching conditions) ----
   const COMMENT_SETS = {
     positive: [
-      { author: "alex_92",     time: "2 weeks ago", likes: 14, text: "This was so well put together, genuinely enjoyed watching this." },
-      { author: "j.moretti",   time: "1 month ago",  likes: 6,  text: "Really appreciate the effort that went into this, well done." },
-      { author: "nicole.b",    time: "5 days ago",   likes: 21, text: "One of the better videos I've come across on this topic." },
-      { author: "d_hartley",   time: "3 weeks ago",  likes: 3,  text: "Great job, this deserves way more attention than it's getting." },
-      { author: "traveler_k",  time: "2 months ago", likes: 9,  text: "Loved every second of this, thanks for sharing." }
+      { author: "alex_92",     time: "2 weeks ago", likeRatio: 0.0147, text: "I'm a teacher and I'm so concerned about my students." },
+      { author: "j.moretti",   time: "1 month ago",  likeRatio: 0.0063, text: "Haidt's research on this has genuinely changed how I'm raising my kids. Thank you for having him on." },
+      { author: "nicole.b",    time: "5 days ago",   likeRatio: 0.0221, text: "This needs to be shown in every school fr 👏👏" },
+      { author: "d_hartley",   time: "3 weeks ago",  likeRatio: 0.0032, text: "I waited until 16 for my daughter and she thanked me for it later." },
+      { author: "traveler_k",  time: "2 months ago", likeRatio: 0.0095, text: "I didn't get an iPhone until I was almost 16, and I am so glad. The unrestricted internet is a scary place, especially for vulnerable minds…" }
     ],
     neutral: [
-      { author: "alex_92",     time: "2 weeks ago", likes: 2, text: "Watched this earlier, thought it was okay overall." },
-      { author: "j.moretti",   time: "1 month ago",  likes: 0, text: "Interesting take, not really sure how I feel about it." },
-      { author: "nicole.b",    time: "5 days ago",   likes: 1, text: "This is fine, nothing special either way." },
-      { author: "d_hartley",   time: "3 weeks ago",  likes: 0, text: "Saw this pop up on my feed and decided to check it out." },
-      { author: "traveler_k",  time: "2 months ago", likes: 3, text: "Some parts were fine, others less so." }
+      { author: "alex_92",     time: "2 weeks ago", likeRatio: 0.0021, text: "Anyone know which book this is from?" },
+      { author: "j.moretti",   time: "1 month ago",  likeRatio: 0, text: "Just commenting for the algorithm" },
+      { author: "nicole.b",    time: "5 days ago",   likeRatio: 0.00105, text: "Interesting take, not really sure how I feel about it." },
+      { author: "d_hartley",   time: "3 weeks ago",  likeRatio: 0, text: "I don't usually watch long interviews but I found this interesting" },
+      { author: "traveler_k",  time: "2 months ago", likeRatio: 0.00316, text: "Is there a full version of this interview somewhere?" }
     ],
     negative: [
-      { author: "alex_92",     time: "2 weeks ago", likes: 11, text: "Not a fan of this, honestly kind of disappointing." },
-      { author: "j.moretti",   time: "1 month ago",  likes: 4,  text: "Expected a lot more from this, it really fell flat." },
-      { author: "nicole.b",    time: "5 days ago",   likes: 17, text: "This didn't really work for me at all." },
-      { author: "d_hartley",   time: "3 weeks ago",  likes: 2,  text: "Pretty underwhelming, wouldn't recommend it." },
-      { author: "traveler_k",  time: "2 months ago", likes: 7,  text: "Wasn't impressed, felt like a waste of time." }
+      { author: "alex_92",     time: "2 weeks ago", likeRatio: 0.01156, text: "Easy for him to say, try telling that to a 15 year old who's the only kid in class without a phone." },
+      { author: "j.moretti",   time: "1 month ago",  likeRatio: 0.0042, text: "Let children use their phones!!" },
+      { author: "nicole.b",    time: "5 days ago",   likeRatio: 0.01788, text: "Correlation ≠ causation my guy. There's like 10 other things messing with teen mental health besides phones" },
+      { author: "d_hartley",   time: "3 weeks ago",  likeRatio: 0.0021, text: "Kind of tired of boomers panicking about technology" },
+      { author: "traveler_k",  time: "2 months ago", likeRatio: 0.00736, text: "He never addresses that banning it just pushes kids to use it secretly with even less oversight" }
     ]
   };
 
@@ -272,13 +277,17 @@
   for (const v of VAL) {
     for (const vw of VIEWS) {
       for (const lk of LIKES) {
+        const videoLikes = NUMBERS.like[vw][lk];
         CONFIG[n] = {
           title: BASE_TITLE,
           channel: BASE_CHANNEL,
           uploaded: UPLOADED_TEXT,
           views: NUMBERS.view[vw],
-          likes: NUMBERS.like[vw][lk],
-          comments: COMMENT_SETS[v]
+          likes: videoLikes,
+          comments: COMMENT_SETS[v].map(c => ({
+            ...c,
+            likes: Math.round(c.likeRatio * videoLikes)
+          }))
         };
         n++;
       }
