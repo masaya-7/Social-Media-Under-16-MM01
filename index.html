@@ -38,7 +38,7 @@
   body.control{display:flex;align-items:center;min-height:100vh;background:#000;}
   body.control .player-wrap{background:#000;border-radius:0;}
 
-  body.dark{
+  html.dark, body.dark{
     --yt-bg:#0f0f0f;
     --yt-text:#f1f1f1;
     --yt-secondary:#aaaaaa;
@@ -317,6 +317,7 @@
   }
 
   function toggleTheme() {
+    document.documentElement.classList.toggle("dark");
     document.body.classList.toggle("dark");
   }
   window.toggleTheme = toggleTheme;
