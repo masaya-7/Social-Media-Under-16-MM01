@@ -29,7 +29,7 @@
   .layout{display:flex;gap:24px;align-items:flex-start;}
   .left-col{flex:1 1 0;min-width:0;}
   .right-col{width:430px;flex-shrink:0;}
-  .player-wrap{width:100%;background:#000;border-radius:12px;overflow:hidden;}
+  .player-wrap{width:100%;margin:0 auto;background:#000;border-radius:12px;overflow:hidden;}
   .player-inner{position:relative;padding-top:56.25%;}
   .player-inner iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0;}
 
@@ -340,6 +340,32 @@
     document.getElementById("app").innerHTML = `<div class="page">${playerHTML(VIDEO_ID)}</div>`;
   }
 
+  // Sizes the video so the bottom of the channel row lands near the bottom
+  // of the viewport, based on the actual rendered height of the header,
+  // page padding, title/meta block, and channel row (not a fixed guess),
+  // so it adapts correctly across different screen heights.
+  function fitPlayer() {
+    const wrap = document.querySelector(".player-wrap");
+    const leftCol = document.querySelector(".left-col");
+    const meta = document.querySelector(".meta");
+    const channelRow = document.querySelector(".channel-row");
+    const page = document.querySelector(".page");
+    if (!wrap || !leftCol || !meta || !channelRow || !page) return;
+
+    const header = document.querySelector(".yt-header");
+    const headerH = (header && getComputedStyle(header).display !== "none") ? header.offsetHeight : 0;
+    const pageStyles = getComputedStyle(page);
+    const pagePad = (parseFloat(pageStyles.paddingTop) || 0) + (parseFloat(pageStyles.paddingBottom) || 0);
+    const chromeH = meta.offsetHeight + channelRow.offsetHeight;
+
+    const available = window.innerHeight - headerH - pagePad - chromeH;
+    const widthFromHeight = Math.max(available, 200) * (16 / 9);
+    const finalWidth = Math.min(widthFromHeight, leftCol.offsetWidth);
+
+    wrap.style.width = finalWidth + "px";
+  }
+  window.addEventListener("resize", fitPlayer);
+
   function renderCondition(cfg) {
     const commentsHTML = cfg.comments.map(c => `
       <div class="comment">
@@ -388,6 +414,7 @@
         </div>
       </div>
     `;
+    fitPlayer();
   }
 
   function renderError() {
