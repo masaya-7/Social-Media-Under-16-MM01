@@ -21,6 +21,7 @@
     font-family:"Roboto","Arial",Helvetica,sans-serif;min-height:100vh;}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;}
   #app{width:100%;}
+  .yt-header{width:100%;}
   #error{max-width:600px;margin:80px auto;text-align:center;color:var(--yt-secondary);
     font-size:14px;padding:0 20px;}
 
@@ -37,6 +38,15 @@
   body.control .page{max-width:900px;padding:0;}
   body.control{display:flex;align-items:center;min-height:100vh;background:#000;}
   body.control .player-wrap{background:#000;border-radius:0;}
+
+  body.dark{
+    --yt-bg:#0f0f0f;
+    --yt-text:#f1f1f1;
+    --yt-secondary:#aaaaaa;
+    --yt-border:#3f3f3f;
+    --yt-chip-bg:#272727;
+  }
+  body.dark .avatar{filter:brightness(0.95);}
 
   @media (max-width:860px){
     .layout{flex-direction:column;}
@@ -67,10 +77,48 @@
   .avatar{width:40px;height:40px;border-radius:50%;background:#909090;color:#fff;
     display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;flex-shrink:0;}
   .channel-name{font-size:15px;font-weight:500;color:var(--yt-text);}
-  .subscribe-btn{background:var(--yt-text);color:#fff;border:none;border-radius:18px;
+  .subscribe-btn{background:var(--yt-red);color:#fff;border:none;border-radius:18px;
     padding:0 16px;height:36px;font-size:14px;font-weight:500;cursor:default;}
 
-  /* ---------- comments ---------- */
+  /* ---------- top header (YouTube-style nav bar) ---------- */
+  .yt-header{width:100%;height:56px;display:flex;align-items:center;justify-content:space-between;
+    gap:16px;padding:0 16px;border-bottom:1px solid var(--yt-border);background:var(--yt-bg);
+    position:sticky;top:0;z-index:10;}
+  body.control .yt-header{display:none;}
+
+  .header-left{display:flex;align-items:center;gap:16px;flex-shrink:0;}
+  .icon-btn{display:flex;align-items:center;justify-content:center;width:40px;height:40px;
+    border-radius:50%;border:none;background:transparent;cursor:pointer;color:var(--yt-text);flex-shrink:0;}
+  .icon-btn:hover{background:var(--yt-chip-bg);}
+  .icon-btn svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;}
+
+  .yt-logo{display:flex;align-items:center;gap:4px;}
+  .yt-logo .play-icon{width:30px;height:21px;background:var(--yt-red);border-radius:6px;
+    display:flex;align-items:center;justify-content:center;}
+  .yt-logo .play-icon svg{width:11px;height:11px;fill:#fff;}
+  .yt-logo .wordmark{font-size:20px;font-weight:500;letter-spacing:-0.5px;color:var(--yt-text);}
+
+  .header-center{flex:1;display:flex;align-items:center;justify-content:center;max-width:640px;}
+  .search-bar{flex:1;height:40px;border:1px solid var(--yt-border);border-radius:20px 0 0 20px;
+    padding:0 16px;display:flex;align-items:center;color:var(--yt-secondary);font-size:15px;background:var(--yt-bg);}
+  .search-btn{width:60px;height:40px;background:var(--yt-chip-bg);border:1px solid var(--yt-border);
+    border-left:0;border-radius:0 20px 20px 0;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .search-btn svg{width:18px;height:18px;fill:none;stroke:var(--yt-text);stroke-width:2;}
+  .mic-btn{margin-left:12px;background:var(--yt-chip-bg);}
+  .mic-btn svg{stroke:none;fill:currentColor;width:18px;height:18px;}
+
+  .header-right{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+  .header-avatar{width:32px;height:32px;border-radius:50%;color:#fff;display:flex;align-items:center;
+    justify-content:center;font-size:13px;font-weight:600;margin-left:6px;}
+
+  .icon-moon{display:none;}
+  body.dark .icon-sun{display:none;}
+  body.dark .icon-moon{display:block;}
+
+  @media (max-width:860px){
+    .header-center{display:none;}
+    .header-left .icon-btn{display:none;}
+  }
   .comments{padding:0;position:sticky;top:16px;max-height:calc(100vh - 32px);
     overflow-y:auto;}
   .comments-header{font-size:16px;font-weight:500;margin:0 0 20px;position:sticky;top:0;
@@ -91,6 +139,38 @@
 </style>
 </head>
 <body>
+<header class="yt-header">
+  <div class="header-left">
+    <button class="icon-btn" aria-label="Menu">
+      <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <div class="yt-logo">
+      <div class="play-icon"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+      <span class="wordmark">YouTube</span>
+    </div>
+  </div>
+  <div class="header-center">
+    <div class="search-bar">Search</div>
+    <div class="search-btn">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+    </div>
+    <button class="icon-btn mic-btn" aria-label="Search with voice">
+      <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zM19 11a7 7 0 0 1-14 0M12 18v3"/></svg>
+    </button>
+  </div>
+  <div class="header-right">
+    <button class="icon-btn" aria-label="Create">
+      <svg viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+    </button>
+    <button class="icon-btn" aria-label="Notifications">
+      <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    </button>
+    <button class="icon-btn theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
+      <span id="sun-icon"></span><span id="moon-icon"></span>
+    </button>
+    <div class="header-avatar" id="header-avatar">U</div>
+  </div>
+</header>
 <div id="app"></div>
 
 <script>
@@ -233,6 +313,22 @@
   function thumbUpSmallSVG() {
     return '<svg viewBox="0 0 24 24"><path d="M2 20h3V9H2v11zM22 10c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L12.17 1 6.59 6.59C6.22 6.95 6 7.45 6 8v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/></svg>';
   }
+
+  function sunSVG() {
+    return '<svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>';
+  }
+  function moonSVG() {
+    return '<svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+  }
+
+  function toggleTheme() {
+    document.body.classList.toggle("dark");
+  }
+  window.toggleTheme = toggleTheme;
+
+  document.getElementById("sun-icon").outerHTML = sunSVG();
+  document.getElementById("moon-icon").outerHTML = moonSVG();
+  document.getElementById("header-avatar").style.background = avatarColor("You");
 
   function playerHTML(videoId) {
     return `<div class="player-wrap"><div class="player-inner">
