@@ -180,8 +180,10 @@
       or channel name. These are IDENTICAL across every condition
       (only view count, like count, and comments vary), so edit once.
 
-   3. Edit NUMBERS below to set your actual high/low view and like
-      values.
+   3. Edit NUMBERS below to set your actual view values, and your like
+      values for each of the 4 view/like combinations (like counts are
+      set separately per view level, so they can stay realistic — e.g.
+      you likely don't want a low-view video showing a huge like count).
 
    4. Edit COMMENT_SETS to replace the placeholder comments with
       comments relevant to your actual video, keeping the pos/neu/neg
@@ -220,9 +222,17 @@
   const UPLOADED_TEXT = "3 days ago";
 
   // ---- 3. VIEW / LIKE NUMBERS ----
+  // Like counts are set separately for each view-count level, so you can
+  // keep numbers realistic (e.g. a low-view video shouldn't have a huge
+  // like count). This gives you 4 independently editable like values:
+  //   high views + high likes, high views + low likes,
+  //   low views + high likes,  low views + low likes
   const NUMBERS = {
-    view: { high: 847000,  low: 1284 },
-    like: { high: 38000,   low: 84   }
+    view: { high: 847000, low: 1284 },
+    like: {
+      high: { high: 38000, low: 6200 },  // like counts used when views = high
+      low:  { high: 320,   low: 84   }   // like counts used when views = low
+    }
   };
 
   // ---- 4. COMMENTS (5 per valence, reused across matching conditions) ----
@@ -267,7 +277,7 @@
           channel: BASE_CHANNEL,
           uploaded: UPLOADED_TEXT,
           views: NUMBERS.view[vw],
-          likes: NUMBERS.like[lk],
+          likes: NUMBERS.like[vw][lk],
           comments: COMMENT_SETS[v]
         };
         n++;
