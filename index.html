@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>YouTube</title>
+<link rel="icon" href="data:,">
+<style>
+  :root{
+    --yt-bg:#fff;
+    --yt-text:#0f0f0f;
+    --yt-secondary:#606060;
+    --yt-border:#e5e5e5;
+    --yt-link:#065fd4;
+    --yt-chip-bg:#f2f2f2;
+    --yt-red:#cc0000;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--yt-bg);color:var(--yt-text);
+    font-family:"Roboto","Arial",Helvetica,sans-serif;}
+  #error{max-width:600px;margin:80px auto;text-align:center;color:var(--yt-secondary);
+    font-size:14px;padding:0 20px;}
+
+  /* ---------- shared layout ---------- */
+  .page{max-width:1280px;margin:0 auto;padding:16px 16px 60px;}
+  .layout{display:flex;gap:24px;align-items:flex-start;}
+  .left-col{flex:1 1 0;min-width:0;}
+  .right-col{width:402px;flex-shrink:0;}
+  .player-wrap{width:100%;background:#000;border-radius:12px;overflow:hidden;}
+  .player-inner{position:relative;padding-top:56.25%;}
+  .player-inner iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0;}
+
+  /* control condition: video only, nothing else */
+  body.control .page{max-width:900px;padding:0;}
+  body.control{display:flex;align-items:center;min-height:100vh;background:#000;}
+  body.control .player-wrap{background:#000;border-radius:0;}
+
+  @media (max-width:860px){
+    .layout{flex-direction:column;}
+    .right-col{width:100%;}
+  }
+
+  /* ---------- meta row (title, views, date) ---------- */
+  .meta{padding:12px 0 0;}
+  .video-title{font-size:18px;font-weight:400;line-height:1.4;margin:0 0 8px;color:var(--yt-text);}
+  .view-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
+    padding-bottom:12px;border-bottom:1px solid var(--yt-border);}
+  .view-count{font-size:14px;color:var(--yt-secondary);}
+  .view-count .dot{margin:0 4px;}
+
+  /* ---------- action buttons (like) ---------- */
+  .actions{display:flex;gap:8px;align-items:center;}
+  .like-pill{display:flex;align-items:center;background:var(--yt-chip-bg);border-radius:18px;
+    overflow:hidden;height:36px;}
+  .like-btn{display:flex;align-items:center;gap:6px;padding:0 14px;height:100%;font-size:14px;
+    font-weight:500;color:var(--yt-text);cursor:default;user-select:none;}
+  .like-btn svg{width:18px;height:18px;fill:none;stroke:var(--yt-text);stroke-width:1.7;}
+  .divider-v{width:1px;height:24px;background:#d3d3d3;}
+
+  /* ---------- channel row ---------- */
+  .channel-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+    padding:12px 0;border-bottom:1px solid var(--yt-border);}
+  .channel-left{display:flex;align-items:center;gap:12px;}
+  .avatar{width:40px;height:40px;border-radius:50%;background:#909090;color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;flex-shrink:0;}
+  .channel-name{font-size:15px;font-weight:500;color:var(--yt-text);}
+  .subscribe-btn{background:var(--yt-text);color:#fff;border:none;border-radius:18px;
+    padding:0 16px;height:36px;font-size:14px;font-weight:500;cursor:default;}
+
+  /* ---------- comments ---------- */
+  .comments{padding:0;position:sticky;top:16px;max-height:calc(100vh - 32px);
+    overflow-y:auto;}
+  .comments-header{font-size:16px;font-weight:500;margin:0 0 20px;position:sticky;top:0;
+    background:var(--yt-bg);padding:4px 0;}
+  @media (max-width:860px){
+    .comments{position:static;max-height:none;overflow-y:visible;}
+  }
+  .comment{display:flex;gap:12px;margin-bottom:20px;}
+  .comment .avatar{width:36px;height:36px;font-size:14px;}
+  .comment-body{flex:1;min-width:0;}
+  .comment-meta{font-size:13px;color:var(--yt-text);margin-bottom:2px;}
+  .comment-meta .author{font-weight:500;margin-right:6px;}
+  .comment-meta .time{color:var(--yt-secondary);font-weight:400;}
+  .comment-text{font-size:14px;line-height:1.4;margin:0 0 6px;color:var(--yt-text);}
+  .comment-actions{display:flex;align-items:center;gap:14px;font-size:12px;color:var(--yt-secondary);}
+  .comment-actions .like-icon{display:flex;align-items:center;gap:5px;}
+  .comment-actions svg{width:14px;height:14px;fill:none;stroke:var(--yt-secondary);stroke-width:2;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* =====================================================================
+   HOW TO CONFIGURE THIS FILE
+   =====================================================================
+   1. Set VIDEO_ID below to the real YouTube video ID used in your study
+      (the part after "v=" in a normal YouTube URL). The video must have
+      embedding enabled by its owner or the player will show an error.
+
+   2. Edit BASE_TITLE / BASE_CHANNEL if you want a different fake title
+      or channel name. These are IDENTICAL across every condition
+      (only view count, like count, and comments vary), so edit once.
+
+   3. Edit NUMBERS below to set your actual high/low view and like
+      values.
+
+   4. Edit COMMENT_SETS to replace the placeholder comments with
+      comments relevant to your actual video, keeping the pos/neu/neg
+      grouping intact (5 comments each is a reasonable default; you can
+      add or remove without breaking anything).
+
+   5. Deploy: drag this single .html file into Netlify/Vercel/Cloudflare
+      Pages (or any static host). No build step, no npm install.
+
+   6. Condition links to hand out (via your Google Form branching):
+        yoursite.com/?cond=1   ...   yoursite.com/?cond=12
+        yoursite.com/?cond=control
+
+      Condition map (valence x view x like):
+        1  = positive, high view, high like
+        2  = positive, high view, low  like
+        3  = positive, low  view, high like
+        4  = positive, low  view, low  like
+        5  = neutral,  high view, high like
+        6  = neutral,  high view, low  like
+        7  = neutral,  low  view, high like
+        8  = neutral,  low  view, low  like
+        9  = negative, high view, high like
+        10 = negative, high view, low  like
+        11 = negative, low  view, high like
+        12 = negative, low  view, low  like
+        control = video only, no title/likes/views/comments
+   ===================================================================== */
+
+  // ---- 1. VIDEO ----
+  const VIDEO_ID = "dQw4w9WgXcQ"; // <-- REPLACE with your study video's ID
+
+  // ---- 2. TITLE / CHANNEL (identical across all conditions) ----
+  const BASE_TITLE   = "Local News Segment - Full Report";
+  const BASE_CHANNEL = "Daily Report";
+  const UPLOADED_TEXT = "3 days ago";
+
+  // ---- 3. VIEW / LIKE NUMBERS ----
+  const NUMBERS = {
+    view: { high: 847000,  low: 1284 },
+    like: { high: 38000,   low: 84   }
+  };
+
+  // ---- 4. COMMENTS (5 per valence, reused across matching conditions) ----
+  const COMMENT_SETS = {
+    positive: [
+      { author: "alex_92",     time: "2 weeks ago", likes: 14, text: "This was so well put together, genuinely enjoyed watching this." },
+      { author: "j.moretti",   time: "1 month ago",  likes: 6,  text: "Really appreciate the effort that went into this, well done." },
+      { author: "nicole.b",    time: "5 days ago",   likes: 21, text: "One of the better videos I've come across on this topic." },
+      { author: "d_hartley",   time: "3 weeks ago",  likes: 3,  text: "Great job, this deserves way more attention than it's getting." },
+      { author: "traveler_k",  time: "2 months ago", likes: 9,  text: "Loved every second of this, thanks for sharing." }
+    ],
+    neutral: [
+      { author: "alex_92",     time: "2 weeks ago", likes: 2, text: "Watched this earlier, thought it was okay overall." },
+      { author: "j.moretti",   time: "1 month ago",  likes: 0, text: "Interesting take, not really sure how I feel about it." },
+      { author: "nicole.b",    time: "5 days ago",   likes: 1, text: "This is fine, nothing special either way." },
+      { author: "d_hartley",   time: "3 weeks ago",  likes: 0, text: "Saw this pop up on my feed and decided to check it out." },
+      { author: "traveler_k",  time: "2 months ago", likes: 3, text: "Some parts were fine, others less so." }
+    ],
+    negative: [
+      { author: "alex_92",     time: "2 weeks ago", likes: 11, text: "Not a fan of this, honestly kind of disappointing." },
+      { author: "j.moretti",   time: "1 month ago",  likes: 4,  text: "Expected a lot more from this, it really fell flat." },
+      { author: "nicole.b",    time: "5 days ago",   likes: 17, text: "This didn't really work for me at all." },
+      { author: "d_hartley",   time: "3 weeks ago",  likes: 2,  text: "Pretty underwhelming, wouldn't recommend it." },
+      { author: "traveler_k",  time: "2 months ago", likes: 7,  text: "Wasn't impressed, felt like a waste of time." }
+    ]
+  };
+
+  /* =====================================================================
+     Condition map. Edit numbers above, not this block.
+     ===================================================================== */
+  const VAL = ["positive", "neutral", "negative"];
+  const VIEWS = ["high", "low"];
+  const LIKES = ["high", "low"];
+
+  const CONFIG = {};
+  let n = 1;
+  for (const v of VAL) {
+    for (const vw of VIEWS) {
+      for (const lk of LIKES) {
+        CONFIG[n] = {
+          title: BASE_TITLE,
+          channel: BASE_CHANNEL,
+          uploaded: UPLOADED_TEXT,
+          views: NUMBERS.view[vw],
+          likes: NUMBERS.like[lk],
+          comments: COMMENT_SETS[v]
+        };
+        n++;
+      }
+    }
+  }
+  CONFIG["control"] = { control: true };
+
+  /* =====================================================================
+     Rendering — no fetch, no localStorage, no external state.
+     Everything below reads only from the CONFIG object above.
+     ===================================================================== */
+  function formatCount(num) {
+    if (num >= 1000000) return (num / 1000000).toFixed(num % 1000000 === 0 ? 0 : 1) + "M";
+    if (num >= 1000) return (num / 1000).toFixed(num % 1000 === 0 ? 0 : 1) + "K";
+    return String(num);
+  }
+
+  function initials(name) {
+    return name.trim().charAt(0).toUpperCase();
+  }
+
+  function thumbUpSVG() {
+    return '<svg viewBox="0 0 24 24"><path d="M2 20h3V9H2v11zM22 10c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L12.17 1 6.59 6.59C6.22 6.95 6 7.45 6 8v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/></svg>';
+  }
+  function thumbUpSmallSVG() {
+    return '<svg viewBox="0 0 24 24"><path d="M2 20h3V9H2v11zM22 10c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L12.17 1 6.59 6.59C6.22 6.95 6 7.45 6 8v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/></svg>';
+  }
+
+  function playerHTML(videoId) {
+    return `<div class="player-wrap"><div class="player-inner">
+      <iframe src="https://www.youtube.com/embed/${videoId}?rel=0"
+        title="video player" frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen></iframe>
+    </div></div>`;
+  }
+
+  function renderControl() {
+    document.body.classList.add("control");
+    document.getElementById("app").innerHTML = `<div class="page">${playerHTML(VIDEO_ID)}</div>`;
+  }
+
+  function renderCondition(cfg) {
+    const commentsHTML = cfg.comments.map(c => `
+      <div class="comment">
+        <div class="avatar">${initials(c.author)}</div>
+        <div class="comment-body">
+          <div class="comment-meta"><span class="author">${c.author}</span><span class="time">${c.time}</span></div>
+          <p class="comment-text">${c.text}</p>
+          <div class="comment-actions">
+            <span class="like-icon">${thumbUpSmallSVG()} ${c.likes > 0 ? c.likes : ""}</span>
+            <span>REPLY</span>
+          </div>
+        </div>
+      </div>
+    `).join("");
+
+    document.getElementById("app").innerHTML = `
+      <div class="page">
+        <div class="layout">
+          <div class="left-col">
+            ${playerHTML(VIDEO_ID)}
+            <div class="meta">
+              <h1 class="video-title">${cfg.title}</h1>
+              <div class="view-row">
+                <div class="view-count">${formatCount(cfg.views)} views<span class="dot">&bull;</span>${cfg.uploaded}</div>
+                <div class="actions">
+                  <div class="like-pill">
+                    <div class="like-btn">${thumbUpSVG()} ${formatCount(cfg.likes)}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="channel-row">
+              <div class="channel-left">
+                <div class="avatar">${initials(cfg.channel)}</div>
+                <div class="channel-name">${cfg.channel}</div>
+              </div>
+              <button class="subscribe-btn">Subscribe</button>
+            </div>
+          </div>
+          <div class="right-col">
+            <div class="comments">
+              <h2 class="comments-header">${cfg.comments.length} Comments</h2>
+              ${commentsHTML}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderError() {
+    document.getElementById("app").innerHTML =
+      `<div id="error">This link isn't valid. Please return to the survey and use the link provided there.</div>`;
+  }
+
+  // ---- entry point ----
+  const params = new URLSearchParams(window.location.search);
+  const cond = params.get("cond");
+  const cfg = cond ? CONFIG[cond] : null;
+
+  if (!cfg) {
+    renderError();
+  } else if (cfg.control) {
+    renderControl();
+  } else {
+    renderCondition(cfg);
+  }
+</script>
+</body>
+</html>
